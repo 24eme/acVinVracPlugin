@@ -10,6 +10,7 @@
  */
 class vracActions extends sfActions
 {
+
   public function executeIndex(sfWebRequest $request)
   {
       $this->vracs = VracClient::getInstance()->retrieveBySoussigne($this->getUser()->getTiers()->get('_id'));
@@ -26,16 +27,25 @@ class vracActions extends sfActions
   
   public function executeNouveau(sfWebRequest $request)
   {      
-  	$configuration = ConfigurationClient::getCurrent();
-  	$interpro = $this->getUser()->getInterpro();
-  	$configurationVrac = $configuration->getConfigurationVracByInterpro($interpro->_id);
-	$this->form = new VracForm($configurationVrac, new Vrac());
-	if ($request->isMethod(sfWebRequest::POST)) {
-		$this->form->bind($request->getParameter($this->form->getName()));
-		if ($this->form->isValid()) {
-			$this->form->save();
-		}            
-	}
+      $this->getResponse()->setTitle('Contrat - Nouveau');
+      $this->vrac = new Vrac();
+      $this->interpro = $this->getUser()->getTiers()->getInterpro();
+      $this->form = new VracSoussigneForm($this->vrac, array('interpro' => $this->interpro));
+ 
+      $this->init_soussigne($request,$this->form);
+      
+      if ($request->isMethod(sfWebRequest::POST)) 
+        {
+            $this->form->bind($request->getParameter($this->form->getName()));
+            if ($this->form->isValid())
+            {
+                $this->maj_etape(1);
+                $this->vrac->numero_contrat = VracClient::getInstance()->getNextNoContrat();
+                $this->form->save();      
+                return $this->redirect('vrac_marche', $this->vrac);
+            }            
+        }
+      $this->setTemplate('soussigne');
   }
   
   
