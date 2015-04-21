@@ -137,21 +137,24 @@ class VracClient extends acCouchdbClient {
         return ConfigurationClient::getInstance()->buildCampagne($date);
     }
 
-    public function getNextNoContrat() {
+    public function getNextNoContrat($isTeledeclarationMode = false) {
         $id = '';
         $date = date('Ymd');
-        $contrats = self::getAtDate($date, acCouchdbClient::HYDRATE_ON_DEMAND)->getIds();
+        $contrats = self::getAtDate($date, acCouchdbClient::HYDRATE_ON_DEMAND, $isTeledeclarationMode)->getIds();
         if (count($contrats) > 0) {
             $id .= ((double) str_replace('VRAC-', '', max($contrats)) + 1);
         } else {
-            $id.= $date . '00001';
+            $id.= $date . intval($isTeledeclarationMode).'0001';
         }
 
         return $id;
     }
 
-    public function getAtDate($date, $hydrate = acCouchdbClient::HYDRATE_DOCUMENT) {
-        return $this->startkey('VRAC-' . $date . '00000')->endkey('VRAC-' . $date . '99999')->execute($hydrate);
+    public function getAtDate($date, $hydrate = acCouchdbClient::HYDRATE_DOCUMENT,$isTeledeclarationMode = false) {
+        if($isTeledeclarationMode){
+            return $this->startkey('VRAC-' . $date . '10000')->endkey('VRAC-' . $date . '99999')->execute($hydrate);
+        }
+        return $this->startkey('VRAC-' . $date . '00000')->endkey('VRAC-' . $date . '09999')->execute($hydrate);
     }
 
     public function findByNumContrat($num_contrat, $hydrate = acCouchdbClient::HYDRATE_DOCUMENT) {

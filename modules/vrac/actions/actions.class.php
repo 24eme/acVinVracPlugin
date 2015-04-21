@@ -240,7 +240,7 @@ class vracActions extends sfActions {
             $this->form->bind($request->getParameter($this->form->getName()));
             if ($this->form->isValid()) {
                 $this->maj_etape(1);
-                $this->vrac->numero_contrat = VracClient::getInstance()->getNextNoContrat();
+                $this->vrac->numero_contrat = VracClient::getInstance()->getNextNoContrat($this->isTeledeclarationMode);
                 $this->vrac->constructId();
                 $this->form->save();
                 return $this->redirect('vrac_marche', $this->vrac);
